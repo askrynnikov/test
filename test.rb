@@ -1,30 +1,26 @@
 def proposal_separate_line(big_string)
   big_string.gsub(/([\.\?!])( *)/, "\\1\n")
 end
-
 questions = File.readlines("#{__dir__}/data/questions.txt").map(&:chomp)
 results = File.readlines("#{__dir__}/data/results.txt").map(&:chomp)
 
-answers = "1 - да\n2 - нет\n3 - иногда"
+ANSWERS = [{ name: 'да', input: '1', score: 2 },
+           { name: 'нет', input: '2', score: 0 },
+           { name: 'иногда', input: '3', score: 1 }]
+
+answers = ANSWERS.reduce('') { |a, n| "#{a} #{n[:input]} - #{n[:name]}\n" }
+
 mark = 0
 questions.each do |question|
   while true
     puts question
     puts answers
-    answer = STDIN.gets.to_i
-    break if [1, 2, 3].include?(answer)
+    answer = STDIN.gets.chomp
+    break if ANSWERS.none? { |a| a[:input] == answer }
     puts "\nОтвет: не удалось распознать"
   end
 
-  mark +=
-    case answer
-    when 1
-      2 #да
-    when 2
-      0 #нет
-    when 3
-      1 #иногда
-    end
+  mark += ANSWERS.find { |a| a[:input] == answer }[:score]
 end
 
 puts "\nРезультаты теста: #{mark} баллов\n"
