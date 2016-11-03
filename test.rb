@@ -1,6 +1,4 @@
 class Test
-  attr_reader :current_question, :number_questions, :mark
-
   ANSWERS = [{ name: 'да', input: '1', score: 2 },
              { name: 'нет', input: '2', score: 0 },
              { name: 'иногда', input: '3', score: 1 }]
@@ -11,26 +9,21 @@ class Test
 
   def initialize
     @questions = File.readlines("#{__dir__}/data/questions.txt").map(&:chomp)
-    @answers = ANSWERS.reduce('') { |a, n| "#{a} #{n[:input]} - #{n[:name]}\n" }
     @results = File.readlines("#{__dir__}/data/results.txt").map(&:chomp)
 
     @mark = 0
-    @number_current_question = 0
-    @number_questions = @questions.size
+    @current_question_number = 0
+    @questions_number = @questions.size
   end
 
-  def run
-    while @number_current_question < @number_questions
-      ask_question
-    end
-    print_results
+  def answers
+    @answers ||= ANSWERS.reduce('') { |a, n| "#{a} #{n[:input]} - #{n[:name]}\n" }
   end
 
   def print_results
-    if @number_current_question < @number_questions
-      puts "\nТеста не пройден."
+    if @current_question_number < @questions_number
+      'Тест не пройден.'
     else
-      puts "\nРезультаты теста: #{@mark} баллов\n"
       answer =
         case @mark
         when (30..31)
@@ -50,30 +43,25 @@ class Test
         else
           @results[7]
         end
-
-      puts Test.proposal_separate_line(answer)
+      "Результаты теста: #{@mark} баллов\n" + Test.proposal_separate_line(answer)
     end
   end
-
-  private
 
   def ask_question
-    while true
-      puts @questions[@number_current_question]
-      puts @answers
-      answer = STDIN.gets.chomp
-      break if ANSWERS.any? { |a| a[:input] == answer }
-      puts "Ответ: #{answer} не удалось распознать"
+    if @current_question_number < @questions_number
+      @questions[@current_question_number] + "\n" + answers
     end
+  end
 
-    @number_current_question += 1
-    @mark += ANSWERS.find { |a| a[:input] == answer }[:score]
+  def get_answer(answer)
+    if @current_question_number < @questions_number
+      if ANSWERS.any? { |a| a[:input] == answer }
+        @current_question_number += 1
+        @mark += ANSWERS.find { |a| a[:input] == answer }[:score]
+        true
+      else
+        false
+      end
+    end
   end
 end
-
-
-
-
-
-
-
