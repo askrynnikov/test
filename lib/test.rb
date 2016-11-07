@@ -3,15 +3,11 @@ class Test
              { name: 'нет', input: '2', score: 0 },
              { name: 'иногда', input: '3', score: 1 }]
 
-  def self.proposal_separate_line(big_string)
-    big_string.gsub(/([\.\?!])( *)/, "\\1\n")
-  end
-
   def initialize
     @questions = File.readlines("#{__dir__}/../data/questions.txt").map(&:chomp)
     @results = File.readlines("#{__dir__}/../data/results.txt").map(&:chomp)
 
-    @mark = 0
+    @scores = 0
     @current_question_number = 0
     @questions_number = @questions.size
   end
@@ -21,9 +17,9 @@ class Test
   end
 
   def result_string
-    if test_passed?
-      "Результаты теста: #{@mark} баллов. " +
-      case @mark
+    if passed?
+      "Результаты теста: #{@scores} баллов. " +
+      case @scores
       when (30..31) then @results[0]
       when (25..29) then @results[1]
       when (19..24) then @results[2]
@@ -36,25 +32,26 @@ class Test
     end
   end
 
-  def ask_question
-    unless test_passed?()
+  def current_question_and_answers
+    unless passed?
       @questions[@current_question_number] + "\n" + answers
     end
   end
 
-  def test_passed?
+  def passed?
     @current_question_number >= @questions_number
   end
 
+  def answer_scoring(answer)
+    @scores += ANSWERS.find { |a| a[:input] == answer }[:score]
+  end
+
+  def next_question
+    @current_question_number += 1
+  end
+
   def answer_admissible?(answer)
-    unless test_passed?()
-      if ANSWERS.any? { |a| a[:input] == answer }
-        @current_question_number += 1
-        @mark += ANSWERS.find { |a| a[:input] == answer }[:score]
-        true
-      else
-        false
-      end
-    end
+    return false if passed?
+    ANSWERS.any? { |a| a[:input] == answer }
   end
 end
